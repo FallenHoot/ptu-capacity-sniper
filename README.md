@@ -167,24 +167,24 @@ Click **Save Configuration** — the function restarts with new settings.
 
 All configuration is via Azure App Settings (environment variables), editable from the dashboard or directly in the Azure Portal.
 
-| Variable                  | Description                            | Default                      |
-| ------------------------- | -------------------------------------- | ---------------------------- |
-| `AZURE_SUBSCRIPTION_ID`   | Target subscription                    | _required_                   |
-| `AZURE_RESOURCE_GROUP`    | Target resource group                  | _required_                   |
-| `AZURE_ACCOUNT_NAME`      | AI Services account name               | _required_                   |
-| `PTU_MODEL_NAME`          | Model to deploy                        | `gpt-5.2`                    |
-| `PTU_MODEL_VERSION`       | Model version                          | `2025-12-11`                 |
-| `PTU_SKU_NAME`            | Deployment SKU                         | `DataZoneProvisionedManaged` |
-| `PTU_TARGET`              | Total PTU goal                         | `74`                         |
-| `PTU_MAX_DEPLOYMENTS`     | Max parallel deployments               | `4`                          |
-| `TPM_SKU_NAME`            | TPM fallback SKU                       | `Standard`                   |
-| `TPM_CAPACITY`            | TPM capacity in thousands              | `300`                        |
-| `TPM_ENABLED`             | Enable TPM fallback                    | `true`                       |
-| `DATA_ZONE`               | Data zone filter (`eu`, `us`, `all`)   | `eu`                         |
-| `SELECTED_REGIONS`        | JSON array of region names             | _auto from model_            |
+| Variable                  | Description                                                   | Default                      |
+| ------------------------- | ------------------------------------------------------------- | ---------------------------- |
+| `AZURE_SUBSCRIPTION_ID`   | Target subscription                                           | _required_                   |
+| `AZURE_RESOURCE_GROUP`    | Target resource group                                         | _required_                   |
+| `AZURE_ACCOUNT_NAME`      | AI Services account name                                      | _required_                   |
+| `PTU_MODEL_NAME`          | Model to deploy                                               | `gpt-5.2`                    |
+| `PTU_MODEL_VERSION`       | Model version                                                 | `2025-12-11`                 |
+| `PTU_SKU_NAME`            | Deployment SKU                                                | `DataZoneProvisionedManaged` |
+| `PTU_TARGET`              | Total PTU goal                                                | `74`                         |
+| `PTU_MAX_DEPLOYMENTS`     | Max parallel deployments                                      | `4`                          |
+| `TPM_SKU_NAME`            | TPM fallback SKU                                              | `Standard`                   |
+| `TPM_CAPACITY`            | TPM capacity in thousands                                     | `300`                        |
+| `TPM_ENABLED`             | Enable TPM fallback                                           | `true`                       |
+| `DATA_ZONE`               | Data zone filter (`eu`, `us`, `all`)                          | `eu`                         |
+| `SELECTED_REGIONS`        | JSON array of region names                                    | _auto from model_            |
 | `CROSS_SKU_FALLBACK`      | Try alternate PTU SKU if primary fails (⚠️ see warning below) | `false`                      |
-| `AZURE_FUNCTION_APP_NAME` | Function app name (for config save)    | _set by Bicep_               |
-| `TEAMS_WEBHOOK_URL`       | Teams webhook for alerts               | _optional_                   |
+| `AZURE_FUNCTION_APP_NAME` | Function app name (for config save)                           | _set by Bicep_               |
+| `TEAMS_WEBHOOK_URL`       | Teams webhook for alerts                                      | _optional_                   |
 
 > ⚠️ **Data Sovereignty Warning**: `CROSS_SKU_FALLBACK` is **disabled by default**. Enabling it may fall back from DataZone to Global SKUs, which route data **outside your EU/US data boundary**. Only enable this if your organization's compliance policy allows global data routing. DataZone SKUs guarantee data stays within the zone; Global does not.
 
