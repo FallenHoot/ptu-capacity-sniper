@@ -1,0 +1,22 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AZURE_SUBSCRIPTION_ID": "<your-subscription-id>",
+    "AZURE_RESOURCE_GROUP": "<your-resource-group>",
+    "AZURE_ACCOUNT_NAME": "<your-ai-services-account>",
+    "PTU_MODEL_NAME": "gpt-5.2",
+    "PTU_MODEL_VERSION": "2025-12-11",
+    "PTU_SKU_NAME": "DataZoneProvisionedManaged",
+    "PTU_TARGET": "50",
+    "PTU_MAX_DEPLOYMENTS": "4",
+    "TPM_SKU_NAME": "Standard",
+    "TPM_CAPACITY": "300",
+    "TPM_ENABLED": "true",
+    "DATA_ZONE": "eu",
+    "CROSS_SKU_FALLBACK": "true",
+    "AZURE_FUNCTION_APP_NAME": "<your-function-app-name>",
+    "TEAMS_WEBHOOK_URL": ""
+  }
+}
