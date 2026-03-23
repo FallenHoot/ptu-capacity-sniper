@@ -31,7 +31,7 @@ infra/
 └── main.bicep          # Full deployment: Function App + Storage + RBAC
 
 tests/
-└── test_ptu_accumulator.py   # 57 unit tests
+└── test_ptu_accumulator.py   # 60 unit tests
 ```
 
 ## Key Design Decisions
@@ -141,4 +141,4 @@ cd tests
 pytest test_ptu_accumulator.py -v
 ```
 
-All 57 tests use `unittest.mock` to mock Azure API calls. No credentials needed.
+All 60 tests use `unittest.mock` to mock Azure API calls. No credentials needed.

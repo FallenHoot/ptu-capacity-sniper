@@ -85,7 +85,7 @@ Every 5 minutes:
 - **Quota pre-check** — Queries Usages API to detect quota ceilings; skips SKUs at 100%
 - **409 reason parsing** — Distinguishes quota-exceeded from no-capacity for smarter retries
 - **Reservation reminders** — Alerts when PTUs are eligible for Azure Reservation discounts
-- **Cross-SKU fallback** — If DataZone PTU unavailable, tries Global PTU before TPM
+- **Cross-SKU fallback** — If DataZone PTU unavailable, tries Global PTU before TPM (opt-in, disabled by default)
 - **TPM fallback** — Creates a pay-per-token deployment if no PTU capacity available
 - **Live dashboard** — Real-time deployment status, progress bar, config editor
 - **Function-key auth** — Dashboard and API locked with Azure Functions key
@@ -182,9 +182,11 @@ All configuration is via Azure App Settings (environment variables), editable fr
 | `TPM_ENABLED`             | Enable TPM fallback                    | `true`                       |
 | `DATA_ZONE`               | Data zone filter (`eu`, `us`, `all`)   | `eu`                         |
 | `SELECTED_REGIONS`        | JSON array of region names             | _auto from model_            |
-| `CROSS_SKU_FALLBACK`      | Try alternate PTU SKU if primary fails | `true`                       |
+| `CROSS_SKU_FALLBACK`      | Try alternate PTU SKU if primary fails (⚠️ see warning below) | `false`                      |
 | `AZURE_FUNCTION_APP_NAME` | Function app name (for config save)    | _set by Bicep_               |
 | `TEAMS_WEBHOOK_URL`       | Teams webhook for alerts               | _optional_                   |
+
+> ⚠️ **Data Sovereignty Warning**: `CROSS_SKU_FALLBACK` is **disabled by default**. Enabling it may fall back from DataZone to Global SKUs, which route data **outside your EU/US data boundary**. Only enable this if your organization's compliance policy allows global data routing. DataZone SKUs guarantee data stays within the zone; Global does not.
 
 ## Supported Models & SKUs
 
@@ -214,7 +216,7 @@ When you select a model and SKU, the dashboard automatically shows only the regi
 ## Testing
 
 ```bash
-# Run unit tests (57 tests, no Azure credentials needed)
+# Run unit tests (60 tests, no Azure credentials needed)
 cd tests
 pip install pytest
 pytest test_ptu_accumulator.py -v

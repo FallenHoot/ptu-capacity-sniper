@@ -63,8 +63,11 @@ MAX_DEPLOYMENTS = int(os.environ.get("PTU_MAX_DEPLOYMENTS", "4"))
 DEPLOYMENT_PREFIX = "gpt52-ptu-accum"
 
 # Cross-SKU fallback: if primary PTU SKU has no capacity, try these in order
-# Only used when CROSS_SKU_FALLBACK is enabled
-CROSS_SKU_FALLBACK_ENABLED = os.environ.get("CROSS_SKU_FALLBACK", "true").lower() == "true"
+# ⚠️ DISABLED by default — enabling this may violate data boundary compliance.
+# DataZone SKUs guarantee data stays within EU/US boundaries.
+# GlobalProvisionedManaged routes data globally with NO region guarantee.
+# Only enable if your organization allows global data routing.
+CROSS_SKU_FALLBACK_ENABLED = os.environ.get("CROSS_SKU_FALLBACK", "false").lower() == "true"
 FALLBACK_SKU_CHAIN = {
     "DataZoneProvisionedManaged": ["GlobalProvisionedManaged"],
     "GlobalProvisionedManaged": ["DataZoneProvisionedManaged"],
@@ -591,10 +594,17 @@ def run_accumulator() -> dict:
                     break  # Don't retry on unexpected errors
             return 0, None
 
-    # Skip primary SKU entirely if quota is blocked — go straight to fallback
+    # Skip primary SKU entirely if quota is blocked or capacity confirmed 0
+    primary_capacity_zero = (capacity_info["checked"] and capacity_info["available"] == 0)
     if primary_quota_blocked:
         logging.warning(
             "Skipping %s — quota is 100%% used. Will try cross-SKU fallback.",
+            PTU_SKU_NAME,
+        )
+    elif primary_capacity_zero:
+        logging.info(
+            "Skipping %s — capacity pre-check confirmed 0 PTU available. "
+            "Avoiding unnecessary PUT requests. Will try fallback SKUs.",
             PTU_SKU_NAME,
         )
     else:
@@ -619,7 +629,7 @@ def run_accumulator() -> dict:
 
     # --- CROSS-SKU FALLBACK: If primary SKU got nothing (or was blocked), try fallback SKUs ---
     ptu_landed_this_cycle = sum(a.get("gained", 0) for a in actions_taken if a.get("action", "") != "tpm_fallback")
-    if (ptu_landed_this_cycle == 0 or primary_quota_blocked) and CROSS_SKU_FALLBACK_ENABLED and remaining > 0:
+    if (ptu_landed_this_cycle == 0 or primary_quota_blocked or primary_capacity_zero) and CROSS_SKU_FALLBACK_ENABLED and remaining > 0:
         fallback_skus = FALLBACK_SKU_CHAIN.get(PTU_SKU_NAME, [])
         for fallback_sku in fallback_skus:
             if remaining <= 0:
@@ -725,6 +735,7 @@ def run_accumulator() -> dict:
         "capacity_info": capacity_info if capacity_info["checked"] else None,
         "quota_info": quota_info if quota_info["checked"] else None,
         "primary_quota_blocked": primary_quota_blocked,
+        "primary_capacity_zero": primary_capacity_zero,
     }
 
 

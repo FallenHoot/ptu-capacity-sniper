@@ -15,7 +15,7 @@
     "TPM_CAPACITY": "300",
     "TPM_ENABLED": "true",
     "DATA_ZONE": "eu",
-    "CROSS_SKU_FALLBACK": "true",
+    "CROSS_SKU_FALLBACK": "false",
     "AZURE_FUNCTION_APP_NAME": "<your-function-app-name>",
     "TEAMS_WEBHOOK_URL": ""
   }

@@ -163,8 +163,11 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
           value: 'func-ptu-sniper-${uniqueSuffix}'
         }
         {
+          // ⚠️ Data sovereignty: enabling cross-SKU fallback may route data
+          // outside your data zone (e.g. DataZone→Global). Only enable if your
+          // organization allows global data routing.
           name: 'CROSS_SKU_FALLBACK'
-          value: 'true'
+          value: 'false'
         }
       ]
     }

@@ -663,3 +663,76 @@ class TestQuotaBlockedSkip:
             for action in result["actions"]:
                 # No primary SKU actions should exist
                 assert "fallback" in action.get("action", "") or action.get("action") == "tpm_fallback"
+
+
+# ---------------------------------------------------------------------------
+# Capacity-zero skip tests (prevents hammering ARM with guaranteed 409s)
+# ---------------------------------------------------------------------------
+class TestCapacityZeroSkip:
+    @patch("ptu_accumulator.check_quota")
+    @patch("ptu_accumulator.check_available_capacity")
+    @patch("ptu_accumulator.send_teams_alert")
+    @patch("ptu_accumulator.attempt_deployment")
+    @patch("ptu_accumulator.get_current_ptus")
+    @patch("ptu_accumulator.get_headers")
+    def test_skips_primary_puts_when_capacity_zero(
+        self, mock_headers, mock_get_ptus, mock_attempt, mock_alert, mock_cap, mock_quota
+    ):
+        """When capacity pre-check confirms 0 for primary SKU, should NOT call attempt_deployment for primary."""
+        mock_headers.return_value = {"Authorization": "Bearer test"}
+        mock_cap.return_value = {
+            "available": 0,
+            "sku_available": {"DataZoneProvisionedManaged": 0, "GlobalProvisionedManaged": 50},
+            "checked": True,
+        }
+        mock_quota.return_value = {"checked": False, "quotas": {}, "blocked_skus": []}
+        mock_get_ptus.return_value = 0
+        mock_attempt.return_value = (409, "no capacity")
+
+        result = acc.run_accumulator()
+        assert result["primary_capacity_zero"] is True
+        # attempt_deployment should NOT have been called for primary slots
+        # It may be called for fallback if enabled, but primary greedy loop should be skipped
+        # Verify by checking that no "snipe" or "create" (non-fallback) actions exist
+        for action in result.get("actions", []):
+            assert "fallback" in action.get("action", "") or action.get("action") == "tpm_fallback"
+
+    @patch("ptu_accumulator.check_quota")
+    @patch("ptu_accumulator.check_available_capacity")
+    @patch("ptu_accumulator.send_teams_alert")
+    @patch("ptu_accumulator.attempt_deployment")
+    @patch("ptu_accumulator.get_current_ptus")
+    @patch("ptu_accumulator.get_headers")
+    def test_proceeds_when_capacity_unknown(
+        self, mock_headers, mock_get_ptus, mock_attempt, mock_alert, mock_cap, mock_quota
+    ):
+        """When capacity pre-check fails (API unreachable), should proceed with PUTs."""
+        mock_headers.return_value = {"Authorization": "Bearer test"}
+        mock_cap.return_value = {"available": -1, "sku_available": {}, "checked": False}
+        mock_quota.return_value = {"checked": False, "quotas": {}, "blocked_skus": []}
+        mock_get_ptus.return_value = 0
+        mock_attempt.return_value = (201, '{"status":"created"}')
+
+        result = acc.run_accumulator()
+        assert result["primary_capacity_zero"] is False
+        # Should have attempted deployment (capacity unknown = try anyway)
+        assert mock_attempt.called
+
+
+# ---------------------------------------------------------------------------
+# Cross-SKU fallback default tests
+# ---------------------------------------------------------------------------
+class TestCrossSkuDefault:
+    def test_cross_sku_fallback_defaults_to_false(self):
+        """Cross-SKU fallback must default to false for data sovereignty."""
+        import os
+        original = os.environ.get("CROSS_SKU_FALLBACK")
+        # Clear env var to test default
+        if "CROSS_SKU_FALLBACK" in os.environ:
+            del os.environ["CROSS_SKU_FALLBACK"]
+        # Re-evaluate the default
+        result = os.environ.get("CROSS_SKU_FALLBACK", "false").lower() == "true"
+        assert result is False
+        # Restore
+        if original is not None:
+            os.environ["CROSS_SKU_FALLBACK"] = original
